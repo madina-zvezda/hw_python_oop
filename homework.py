@@ -1,4 +1,5 @@
 from dataclasses import dataclass, asdict
+from typing import ClassVar
 
 
 @dataclass
@@ -9,7 +10,7 @@ class InfoMessage:
     distance: float
     speed: float
     calories: float
-    MESSAGE: str = (
+    MESSAGE: ClassVar[str] = (
         'Тип тренировки: {training_type}; '
         'Длительность: {duration:.3f} ч.; '
         'Дистанция: {distance:.3f} км; '
@@ -57,14 +58,14 @@ class Training:
 
 class Running(Training):
     """Тренировка - бег"""
-    coeff_calorie1: int = 18
-    coeff_calorie2: int = 20
+    COEFF_CALORIE1: int = 18
+    COEFF_CALORIE2: int = 20
 
     def get_spent_calories(self) -> float:
         """Получить значения потраченных калорий."""
         duration_in_min = round(self.duration * self.MIN_IN_HOUR)
         return (
-            (self.coeff_calorie1 * self.get_mean_speed() - self.coeff_calorie2)
+            (self.COEFF_CALORIE1 * self.get_mean_speed() - self.COEFF_CALORIE2)
             * self.weight
             / self.M_IN_KM
             * duration_in_min)
@@ -80,18 +81,18 @@ class SportsWalking(Training):
 
     def get_spent_calories(self) -> float:
         """Получить значения потраченных калорий."""
-        coef_calorie1: int = 0.035
-        coef_calorie2: int = 0.029
+        COEF_CALORIE01: float = 0.035
+        COEF_CALORIE02: float = 0.029
         m_p = (self.get_mean_speed() ** 2 // self.height)
-        k = coef_calorie1 * self.weight + m_p * coef_calorie2 * self.weight
+        k = COEF_CALORIE01 * self.weight + m_p * COEF_CALORIE02 * self.weight
         calories = k * round(self.duration * self.MIN_IN_HOUR)
         return calories
 
 
 class Swimming(Training):
     """Тренировка - плавание"""
-    coeff_calorie_3: int = 1.1
-    coeff_calorie_4: int = 2
+    COEF_CALORIE3: float = 1.1
+    COEF_CALORIE4: int = 2
     LEN_STEP: float = 1.38
 
     def __init__(self,
@@ -111,20 +112,17 @@ class Swimming(Training):
 
     def get_spent_calories(self) -> float:
         """Получить значения потраченных калорий."""
-        calorie = self.get_mean_speed() + self.coeff_calorie_3
-        return calorie * self.coeff_calorie_4 * self.weight
+        calorie = self.get_mean_speed() + self.COEF_CALORIE3
+        return calorie * self.COEF_CALORIE4 * self.weight
 
 
 def read_package(workout_info: str, data_info: list) -> Training:
     """Получить данные от датчиков."""
     workout_dict = {'SWM': Swimming, 'RUN': Running, 'WLK': SportsWalking}
-    while True:
-        try:
-            workout_info in workout_dict
-            break
-        except ValueError:
-            print("не уранить код")
-    return workout_dict[workout_info](*data_info)
+    try:
+        return workout_dict[workout_info](*data_info)
+    except NameError:
+        raise
 
 
 def main(training_info: Training) -> None:
@@ -143,7 +141,3 @@ if __name__ == '__main__':
     for workout_type, data in packages:
         training = read_package(workout_type, data)
         main(training)
-    packages = [
-        ('SWM', [720, 1, 80, 25, 40]),
-        ('RUN', [15000, 1, 75]),
-        ('WLK', [9000, 1, 75, 180]), ]
