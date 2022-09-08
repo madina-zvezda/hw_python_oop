@@ -83,11 +83,10 @@ class SportsWalking(Training):
 
     def get_spent_calories(self) -> float:
         """Получить значения потраченных калорий."""
-        m_p = (self.get_mean_speed() ** 2 // self.height)
-        k = (self.COEF_CALORIE01 * self.weight + m_p
-             * self.COEF_CALORIE02 * self.weight)
-        calories = k * round(self.duration * self.MIN_IN_HOUR)
-        return calories
+        return ((self.COEF_CALORIE01 * self.weight
+                + (self.get_mean_speed() ** 2 // self.height)
+                * self.COEF_CALORIE02 * self.weight)
+                * round(self.duration * self.MIN_IN_HOUR))
 
 
 class Swimming(Training):
@@ -122,8 +121,8 @@ def read_package(workout_info: str, data_info: list) -> Training:
     workout_dict = {'SWM': Swimming, 'RUN': Running, 'WLK': SportsWalking}
     try:
         return workout_dict[workout_info](*data_info)
-    except NameError:
-        raise
+    except (KeyError, TypeError) as type_error:
+        raise ValueError('Неверный тип тренировки {0}'.format(type_error))
 
 
 def main(training_info: Training) -> None:
